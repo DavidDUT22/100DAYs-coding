@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WanderAI — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2E22; --ink-soft:#4E5F53;
+    --stone:#F1EFE8; --stone-card:#FBFAF6;
+    --jade:#0F6E56; --jade-deep:#085041; --jade-tint:#E1F5EE;
+    --gold:#BA7517; --gold-tint:#FAEEDA;
+    --clay:#D85A30; --clay-tint:#FAECE7;
+    --line:#DEDAD0;
+    --font-display:'Fraunces',serif; --font-body:'Inter',sans-serif; --font-mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .stage{display:flex;justify-content:center;padding:24px 12px;background:transparent;font-family:var(--font-body);}
+  .phone{width:390px;max-width:100%;background:var(--stone);border-radius:36px;border:1px solid var(--line);overflow:hidden;box-shadow:0 1px 0 var(--line);}
+  .screen{min-height:700px;display:flex;flex-direction:column;}
+  .topbar{padding:22px 22px 14px;display:flex;align-items:center;justify-content:space-between;}
+  .brand{font-family:var(--font-display);font-weight:600;font-size:20px;color:var(--ink);letter-spacing:.2px;}
+  .brand .mark{color:var(--jade);}
+  .stamp{font-family:var(--font-mono);font-size:10px;color:var(--ink-soft);border:1px solid var(--line);padding:3px 8px;border-radius:20px;}
+  .content{padding:0 22px 100px;flex:1;overflow-y:auto;}
+  h1.hero{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.2;color:var(--ink);margin:6px 0 4px;}
+  p.sub{color:var(--ink-soft);font-size:14px;line-height:1.5;margin:0 0 22px;}
+  label.field-label{display:block;font-size:12px;color:var(--ink-soft);margin:0 0 6px;font-weight:500;}
+  .field{margin-bottom:18px;}
+  input[type=text], select{
+    width:100%;height:46px;border-radius:10px;border:1px solid var(--line);background:var(--stone-card);
+    padding:0 14px;font-family:var(--font-body);font-size:14px;color:var(--ink);
+  }
+  input[type=text]:focus, select:focus{outline:none;border-color:var(--jade);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .chip-group{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{padding:8px 14px;border-radius:20px;border:1px solid var(--line);background:var(--stone-card);font-size:13px;color:var(--ink-soft);cursor:pointer;user-select:none;}
+  .chip.on{background:var(--jade-tint);border-color:var(--jade);color:var(--jade-deep);font-weight:500;}
+  .primary-btn{width:100%;height:50px;border-radius:12px;border:none;background:var(--jade);color:#fff;font-family:var(--font-body);font-weight:600;font-size:15px;cursor:pointer;margin-top:6px;}
+  .primary-btn:active{transform:scale(.98);}
+  .ghost-btn{width:100%;height:44px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:14px;font-weight:500;cursor:pointer;}
+  .card{background:var(--stone-card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;}
+  .card-title{font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--ink);margin:0 0 2px;}
+  .card-sub{font-size:12px;color:var(--ink-soft);margin:0 0 10px;}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .stat{background:var(--jade-tint);border-radius:10px;padding:10px 12px;}
+  .stat .num{font-family:var(--font-mono);font-weight:500;font-size:17px;color:var(--jade-deep);}
+  .stat .lbl{font-size:11px;color:var(--jade-deep);opacity:.75;margin-top:2px;}
+  .daychip{display:inline-block;font-family:var(--font-mono);font-size:11px;background:var(--gold-tint);color:#633806;padding:3px 8px;border-radius:6px;margin-bottom:8px;}
+  .stop{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line);}
+  .stop:first-of-type{border-top:none;}
+  .stop .dot{width:8px;height:8px;border-radius:50%;background:var(--jade);margin-top:6px;flex-shrink:0;}
+  .stop .txt{font-size:13.5px;color:var(--ink);}
+  .budget-line{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid var(--line);font-size:13.5px;}
+  .budget-line:first-of-type{border-top:none;}
+  .bar-track{background:var(--line);border-radius:4px;height:6px;width:100%;margin-top:6px;overflow:hidden;}
+  .bar-fill{height:100%;background:var(--gold);border-radius:4px;}
+  .amt{font-family:var(--font-mono);font-weight:500;}
+  .tabbar{position:absolute;bottom:0;left:0;right:0;display:flex;background:var(--stone-card);border-top:1px solid var(--line);padding:10px 10px 16px;}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--ink-soft);font-family:var(--font-body);font-size:10.5px;cursor:pointer;padding:4px 0;}
+  .tab.active{color:var(--jade-deep);font-weight:600;}
+  .tab i{font-size:19px;}
+  .phone-body{position:relative;}
+  .map-svg{width:100%;border-radius:12px;background:var(--jade-tint);}
+  .pin-label{font-family:var(--font-mono);font-size:9px;fill:var(--jade-deep);}
+  .interest-note{font-size:11px;color:var(--ink-soft);margin-top:-10px;margin-bottom:18px;}
+  .hidden{display:none !important;}
+  .backlink{font-size:12px;color:var(--jade-deep);cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px;font-weight:500;}
+</style>
+</head>
+<body>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css">
+<div class="stage">
+<div class="phone">
+  <div class="phone-body">
+
+  <!-- SCREEN 0: TRIP INPUT -->
+  <div class="screen" id="screen-input">
+    <div class="topbar">
+      <div class="brand"><span class="mark">Wander</span>AI</div>
+      <div class="stamp">prototype demo</div>
+    </div>
+    <div class="content">
+      <h1 class="hero">Plan your next trip</h1>
+      <p class="sub">Tell WanderAI where you're headed, and it'll build the itinerary, budget, and route for you.</p>
+
+      <div class="field">
+        <label class="field-label">Destination</label>
+        <select id="in-dest">
+          <option>Siem Reap, Cambodia</option>
+          <option>Phnom Penh, Cambodia</option>
+          <option>Kampot, Cambodia</option>
+        </select>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label class="field-label">Duration</label>
+          <select id="in-duration">
+            <option value="3">3 days</option>
+            <option value="4">4 days</option>
+            <option value="5">5 days</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Budget (USD)</label>
+          <input type="text" id="in-budget" value="300" inputmode="numeric">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Interests</label>
+        <div class="chip-group" id="chip-group">
+          <div class="chip on" data-v="Temples">Temples</div>
+          <div class="chip on" data-v="Local food">Local food</div>
+          <div class="chip" data-v="Nightlife">Nightlife</div>
+          <div class="chip" data-v="Nature">Nature</div>
+          <div class="chip" data-v="Shopping">Shopping</div>
+          <div class="chip" data-v="History">History</div>
+        </div>
+        <div class="interest-note">Tap to select — used to weight the AI itinerary.</div>
+      </div>
+
+      <button class="primary-btn" onclick="generateTrip()"><i class="ti ti-sparkles" style="font-size:16px;vertical-align:-3px;margin-right:6px;" aria-hidden="true"></i>Generate itinerary</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 1: MAIN APP -->
+  <div class="screen hidden" id="screen-app">
+    <div class="topbar">
+      <div class="brand"><span class="mark">Wander</span>AI</div>
+      <div class="stamp" id="trip-stamp">Siem Reap · 3d</div>
+    </div>
+    <div class="content">
+
+      <!-- DASHBOARD PANE -->
+      <div id="pane-dashboard">
+        <span class="backlink" onclick="backToInput()"><i class="ti ti-arrow-left" aria-hidden="true"></i>Edit trip</span>
+        <h1 class="hero" id="dash-title">Siem Reap, 3 days</h1>
+        <p class="sub">Everything for this trip, in one place — itinerary, budget, and route.</p>
+
+        <div class="stat-grid" style="margin-bottom:16px;">
+          <div class="stat"><div class="num" id="dash-budget">$300</div><div class="lbl">total budget</div></div>
+          <div class="stat"><div class="num" id="dash-stops">9 stops</div><div class="lbl">across the trip</div></div>
+        </div>
+
+        <div class="card" onclick="showTab('itinerary')" style="cursor:pointer;">
+          <p class="card-title">Itinerary</p>
+          <p class="card-sub">Day-by-day plan, built from your interests</p>
+          <div class="stop" id="dash-preview-stop"></div>
+        </div>
+
+        <div class="card" onclick="showTab('budget')" style="cursor:pointer;">
+          <p class="card-title">Budget</p>
+          <p class="card-sub">Estimated spend by category</p>
+          <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+        </div>
+
+        <div class="card" onclick="showTab('map')" style="cursor:pointer;">
+          <p class="card-title">Route map</p>
+          <p class="card-sub">Optimized order for your stops</p>
+        </div>
+      </div>
+
+      <!-- ITINERARY PANE -->
+      <div id="pane-itinerary" class="hidden">
+        <h1 class="hero">Itinerary</h1>
+        <p class="sub">Generated day-by-day based on your interests.</p>
+        <div id="itinerary-days"></div>
+      </div>
+
+      <!-- BUDGET PANE -->
+      <div id="pane-budget" class="hidden">
+        <h1 class="hero">Budget</h1>
+        <p class="sub">Estimated costs for the full trip.</p>
+        <div class="card" id="budget-card"></div>
+      </div>
+
+      <!-- MAP PANE -->
+      <div id="pane-map" class="hidden">
+        <h1 class="hero">Route map</h1>
+        <p class="sub">Stops in optimized visiting order.</p>
+        <svg class="map-svg" viewBox="0 0 320 320" id="map-svg"></svg>
+      </div>
+
+    </div>
+    <div class="tabbar">
+      <button class="tab active" data-tab="dashboard" onclick="showTab('dashboard')"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard</button>
+      <button class="tab" data-tab="itinerary" onclick="showTab('itinerary')"><i class="ti ti-route" aria-hidden="true"></i>Itinerary</button>
+      <button class="tab" data-tab="budget" onclick="showTab('budget')"><i class="ti ti-wallet" aria-hidden="true"></i>Budget</button>
+      <button class="tab" data-tab="map" onclick="showTab('map')"><i class="ti ti-map-2" aria-hidden="true"></i>Map</button>
+    </div>
+  </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+const ITINERARIES = {
+  "Siem Reap, Cambodia": {
+    3: [
+      {label:"Day 1", stops:["Angkor Wat sunrise visit","Khmer restaurant lunch","Pub Street evening walk"]},
+      {label:"Day 2", stops:["Bayon Temple","Ta Prohm","Night market"]},
+      {label:"Day 3", stops:["Floating village tour","Souvenir shopping","Airport transfer"]}
+    ],
+    4: [
+      {label:"Day 1", stops:["Angkor Wat sunrise visit","Khmer restaurant lunch","Pub Street evening walk"]},
+      {label:"Day 2", stops:["Bayon Temple","Ta Prohm","Night market"]},
+      {label:"Day 3", stops:["Banteay Srei day trip","Local noodle stall lunch","Spa evening"]},
+      {label:"Day 4", stops:["Floating village tour","Souvenir shopping","Airport transfer"]}
+    ],
+    5: [
+      {label:"Day 1", stops:["Angkor Wat sunrise visit","Khmer restaurant lunch","Pub Street evening walk"]},
+      {label:"Day 2", stops:["Bayon Temple","Ta Prohm","Night market"]},
+      {label:"Day 3", stops:["Banteay Srei day trip","Local noodle stall lunch","Spa evening"]},
+      {label:"Day 4", stops:["Tonle Sap floating village","Fish amok cooking class","Riverside dinner"]},
+      {label:"Day 5", stops:["Old Market browsing","Souvenir shopping","Airport transfer"]}
+    ]
+  },
+  "Phnom Penh, Cambodia": {
+    3: [
+      {label:"Day 1", stops:["Royal Palace","Riverside lunch","Sisowath Quay walk"]},
+      {label:"Day 2", stops:["National Museum","Central Market","Rooftop dinner"]},
+      {label:"Day 3", stops:["Local coffee crawl","Souvenir shopping","Airport transfer"]}
+    ],
+    4: [
+      {label:"Day 1", stops:["Royal Palace","Riverside lunch","Sisowath Quay walk"]},
+      {label:"Day 2", stops:["National Museum","Central Market","Rooftop dinner"]},
+      {label:"Day 3", stops:["Killing Fields & S-21","Quiet reflection lunch","Local eatery dinner"]},
+      {label:"Day 4", stops:["Local coffee crawl","Souvenir shopping","Airport transfer"]}
+    ],
+    5: [
+      {label:"Day 1", stops:["Royal Palace","Riverside lunch","Sisowath Quay walk"]},
+      {label:"Day 2", stops:["National Museum","Central Market","Rooftop dinner"]},
+      {label:"Day 3", stops:["Killing Fields & S-21","Quiet reflection lunch","Local eatery dinner"]},
+      {label:"Day 4", stops:["Mekong river cruise","Street food tour","Night market"]},
+      {label:"Day 5", stops:["Local coffee crawl","Souvenir shopping","Airport transfer"]}
+    ]
+  },
+  "Kampot, Cambodia": {
+    3: [
+      {label:"Day 1", stops:["Old French quarter walk","Pepper farm lunch","Riverside sunset"]},
+      {label:"Day 2", stops:["Bokor Hill Station","Local seafood lunch","Night market"]},
+      {label:"Day 3", stops:["Kayaking the river","Souvenir shopping","Bus transfer"]}
+    ],
+    4: [
+      {label:"Day 1", stops:["Old French quarter walk","Pepper farm lunch","Riverside sunset"]},
+      {label:"Day 2", stops:["Bokor Hill Station","Local seafood lunch","Night market"]},
+      {label:"Day 3", stops:["Kep crab market day trip","Coastal seafood lunch","Beach evening"]},
+      {label:"Day 4", stops:["Kayaking the river","Souvenir shopping","Bus transfer"]}
+    ],
+    5: [
+      {label:"Day 1", stops:["Old French quarter walk","Pepper farm lunch","Riverside sunset"]},
+      {label:"Day 2", stops:["Bokor Hill Station","Local seafood lunch","Night market"]},
+      {label:"Day 3", stops:["Kep crab market day trip","Coastal seafood lunch","Beach evening"]},
+      {label:"Day 4", stops:["Cave temple hike","Riverside picnic","Sunset cruise"]},
+      {label:"Day 5", stops:["Kayaking the river","Souvenir shopping","Bus transfer"]}
+    ]
+  }
+};
+
+let state = {dest:"Siem Reap, Cambodia", duration:3, budget:300, interests:["Temples","Local food"]};
+
+document.querySelectorAll('#chip-group .chip').forEach(c=>{
+  c.addEventListener('click',()=>c.classList.toggle('on'));
+});
+
+function generateTrip(){
+  state.dest = document.getElementById('in-dest').value;
+  state.duration = parseInt(document.getElementById('in-duration').value,10);
+  const b = parseInt(document.getElementById('in-budget').value,10);
+  state.budget = isNaN(b) ? 300 : b;
+  state.interests = [...document.querySelectorAll('#chip-group .chip.on')].map(c=>c.dataset.v);
+
+  document.getElementById('screen-input').classList.add('hidden');
+  document.getElementById('screen-app').classList.remove('hidden');
+  document.getElementById('trip-stamp').textContent = state.dest.split(',')[0] + ' · ' + state.duration + 'd';
+  document.getElementById('dash-title').textContent = state.dest.split(',')[0] + ', ' + state.duration + ' days';
+  document.getElementById('dash-budget').textContent = '$' + state.budget.toLocaleString();
+
+  renderItinerary();
+  renderBudget();
+  renderMap();
+  showTab('dashboard');
+}
+
+function backToInput(){
+  document.getElementById('screen-app').classList.add('hidden');
+  document.getElementById('screen-input').classList.remove('hidden');
+}
+
+function getPlan(){
+  const byDest = ITINERARIES[state.dest] || ITINERARIES["Siem Reap, Cambodia"];
+  return byDest[state.duration] || byDest[3];
+}
+
+function renderItinerary(){
+  const plan = getPlan();
+  const wrap = document.getElementById('itinerary-days');
+  wrap.innerHTML = '';
+  let totalStops = 0;
+  plan.forEach(day=>{
+    totalStops += day.stops.length;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<div class="daychip">${day.label}</div>` +
+      day.stops.map(s=>`<div class="stop"><div class="dot"></div><div class="txt">${s}</div></div>`).join('');
+    wrap.appendChild(card);
+  });
+  document.getElementById('dash-stops').textContent = totalStops + ' stops';
+  const first = plan[0].stops[0];
+  document.getElementById('dash-preview-stop').innerHTML = `<div class="dot"></div><div class="txt">${plan[0].label}: ${first}</div>`;
+}
+
+function renderBudget(){
+  const b = state.budget;
+  const cats = [
+    {name:'Hotel', pct:0.30, icon:'ti-bed'},
+    {name:'Food', pct:0.20, icon:'ti-tools-kitchen-2'},
+    {name:'Transportation', pct:0.13, icon:'ti-car'},
+    {name:'Activities', pct:0.27, icon:'ti-ticket'},
+    {name:'Emergency fund', pct:0.10, icon:'ti-shield'}
+  ];
+  const card = document.getElementById('budget-card');
+  card.innerHTML = '<p class="card-title">Estimated costs</p><p class="card-sub">Based on a $'+b.toLocaleString()+' total budget</p>' +
+    cats.map(c=>{
+      const amt = Math.round(b*c.pct);
+      return `<div class="budget-line"><span><i class="ti ${c.icon}" style="font-size:15px;vertical-align:-2px;margin-right:8px;color:var(--ink-soft);" aria-hidden="true"></i>${c.name}</span><span class="amt">$${amt}</span></div>
+              <div class="bar-track"><div class="bar-fill" style="width:${Math.round(c.pct*100)}%"></div></div>`;
+    }).join('') +
+    `<div class="budget-line" style="border-top:1px solid var(--ink);margin-top:8px;padding-top:12px;"><strong>Total</strong><span class="amt"><strong>$${b.toLocaleString()}</strong></span></div>`;
+}
+
+function renderMap(){
+  const plan = getPlan();
+  const allStops = plan.flatMap(d=>d.stops);
+  const svg = document.getElementById('map-svg');
+  const n = allStops.length;
+  const cx = 160, cy = 160, r = 110;
+  let points = [];
+  for(let i=0;i<n;i++){
+    const angle = (i/n) * Math.PI*1.5 - Math.PI/2;
+    const x = cx + r*Math.cos(angle);
+    const y = cy + r*Math.sin(angle)*0.75 + 10;
+    points.push({x,y,label:allStops[i]});
+  }
+  let path = points.map((p,i)=> (i===0?'M':'L') + p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join(' ');
+  let svgContent = `<path d="${path}" fill="none" stroke="#0F6E56" stroke-width="2" stroke-dasharray="1 7" stroke-linecap="round"/>`;
+  points.forEach((p,i)=>{
+    svgContent += `<circle cx="${p.x}" cy="${p.y}" r="10" fill="#0F6E56"/>`;
+    svgContent += `<text x="${p.x}" y="${p.y+4}" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#FBFAF6">${i+1}</text>`;
+    const labelY = p.y > cy ? p.y+22 : p.y-16;
+    svgContent += `<text class="pin-label" x="${p.x}" y="${labelY}" text-anchor="middle">${p.label.split(' ').slice(0,2).join(' ')}</text>`;
+  });
+  svg.innerHTML = svgContent;
+}
+
+function showTab(tab){
+  ['dashboard','itinerary','budget','map'].forEach(t=>{
+    document.getElementById('pane-'+t).classList.toggle('hidden', t!==tab);
+  });
+  document.querySelectorAll('.tab').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab===tab);
+  });
+}
+</script>
+</body>
+</html>
