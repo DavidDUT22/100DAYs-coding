@@ -1,0 +1,1 @@
+bornYear = int(input("Please enter your born year :"))
